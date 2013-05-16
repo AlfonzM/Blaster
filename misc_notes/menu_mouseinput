@@ -1,0 +1,43 @@
+package bucky.game;
+
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+import org.lwjgl.input.Mouse;
+
+public class Menu extends BasicGameState{
+	
+	private static int stateID;
+	public String mouse = "No input yet";
+	int xpos, ypos;
+	
+	public Menu(int state){
+		stateID = state;
+	}
+	
+	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
+		
+	}
+	
+	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
+		g.drawString(mouse, 50, 50);
+		g.drawRect(50, 100, 50, 50);
+		
+		Image face = new Image("res/face.png");
+		g.drawImage(face, xpos-(face.getWidth()/2), 360-ypos-(face.getHeight()/2));
+	}
+	
+	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
+		xpos = Mouse.getX();
+		ypos = Mouse.getY();
+		mouse = "Mouse position: (" + xpos + ", " + ypos + ")"; // bottom left is 0, 0
+		
+	}
+	
+	public int getID(){
+		return stateID;
+	}
+}

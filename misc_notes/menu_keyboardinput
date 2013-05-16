@@ -1,0 +1,42 @@
+package bucky.game;
+
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.StateBasedGame;
+
+public class Menu extends BasicGameState{
+	
+	private static int stateID;
+	Image face;
+	int faceX = 200;
+	int faceY = 200;
+	int speed = 1;
+	
+	public Menu(int state){
+		stateID = state;
+	}
+	
+	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
+		face = new Image("res/face.png");
+	}
+	
+	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
+		g.drawImage(face, faceX, faceY);
+	}
+	
+	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
+		Input input = gc.getInput();
+		if(input.isKeyDown(Input.KEY_W)){ faceY -= speed; }
+		if(input.isKeyDown(Input.KEY_A)){ faceX -= speed; }
+		if(input.isKeyDown(Input.KEY_S)){ faceY += speed; }
+		if(input.isKeyDown(Input.KEY_D)){ faceX += speed; }
+	}
+	
+	public int getID(){
+		return stateID;
+	}
+}
