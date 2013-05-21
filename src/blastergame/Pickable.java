@@ -1,26 +1,34 @@
 package blastergame;
 
+import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
 
-public class Powerup {
-	int powerupID;
+public class Pickable {
+	
+	/*
+	 * 0 = coin
+	 * 1 = shield
+	 */
+	
+	int id;
 	Image sprite;
-	int xpos, ypos;
+	Animation animation;
+	float xpos, ypos, yTarget;
 	boolean visible;
 	
-	public Powerup(int x, int y, int id) throws SlickException{
+	public Pickable(float x, float y, int id) throws SlickException{
 		new Sprites();
 		xpos = x;
 		ypos = y;
-		powerupID = id;
+		this.id = id;
 		visible = true;
-		sprite = Sprites.powerupSprites.get(id);
+//		sprite = Sprites.powerupSprites.get(id);
 	}
 	
 	public void move(){
-		ypos += 3;
+		ypos += 4;
 	}
 
 	public Rectangle getBounds() {

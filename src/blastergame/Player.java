@@ -9,11 +9,11 @@ import org.newdawn.slick.SlickException;
 
 public class Player extends Ship{
 	static int score;
-	int bulletDelay= 100; //delay between bullets
+	int bulletDelay= 120; //delay between bullets
 	int respawnTime, invulnerableTime;
 	int bulletType;
 	int startX, startY;
-	
+	int scraps;
 	boolean readyToFire, readyToRespawn, invulnerable;
 	boolean display;
 	
@@ -49,6 +49,7 @@ public class Player extends Ship{
 		isAlive = true;
 		invulnerable = false;
 		display = true;
+		scraps = 0;
 		
 		// initial bullet size
 		bullets = new ArrayList<Bullet>();
@@ -72,11 +73,10 @@ public class Player extends Ship{
 			Bullet b = new Bullet(xpos + mod , ypos, 0);
 			Bullet b2 = new Bullet(xpos + 35 + mod, ypos, 0);
 			bullets.add(b);
-			bullets.add(b2);
+			bullets.add(b2);	
 			break;
 			
-		case 1:
-			
+		case 1:	
 			break;
 			
 		default:
@@ -112,6 +112,13 @@ public class Player extends Ship{
 
 	public void pickPowerup(int powerupID) {
 		// pick up powerup
+		Sounds.bleep.play();
+	}
+	
+	public void pickCoin(int value){
+		// play coin sound
+		scraps += value;
+		Sounds.coin1.play();
 	}
 	
 	public void render(Graphics g){

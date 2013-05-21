@@ -4,7 +4,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.Sound;
 
 public class Sounds {
-	public static Sound playerBullet, explode, select, music, playerExplode, bleep;
+	public static Sound playerBullet, explode, select, music, playerExplode, bleep, coin1;
 	
 	public Sounds() throws SlickException{
 		playerBullet = new Sound("res/sounds/shoot3.wav");
@@ -14,5 +14,6 @@ public class Sounds {
 		bleep = new Sound("res/sounds/bleep.wav");
 		
 		music = new Sound("res/sounds/music.wav");
+		coin1 = new Sound("res/sounds/coin.wav");
 	}
 }

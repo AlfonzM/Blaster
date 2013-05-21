@@ -2,6 +2,7 @@ package blastergame;
 
 import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
 
 public class Ship {
@@ -29,7 +30,7 @@ public class Ship {
 		return new Rectangle(xpos, ypos, sprite.getWidth(), sprite.getHeight());
 	}
 	
-	public void hit(float damage){
+	public void hit(float damage) throws SlickException{
 		hp -= damage;
 		if (hp <= 0){
 			die();
@@ -40,7 +41,7 @@ public class Ship {
 		
 	}
 	
-	public void die(){
+	public void die() throws SlickException{
 		isAlive = false;
 		Sounds.explode.play();
 	}

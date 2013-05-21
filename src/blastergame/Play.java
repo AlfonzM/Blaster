@@ -1,13 +1,14 @@
 package blastergame;
 
-import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
+import org.newdawn.slick.AngelCodeFont;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.TrueTypeFont;
@@ -25,27 +26,27 @@ public class Play extends BasicGameState{
 //	private Random random = new Random();
 	private Starfield bg;
 	public static int level; // current level
-	public static TrueTypeFont normal, big;
+	public static AngelCodeFont normal;
 	private int playState; // 0 = display wave number, 1 = game, 2 = gap between 0 and 1
 	private String scoreText;
 	
 	public static final int bottomBorder = Game.GHEIGHT - 90; // above health
 	
 	// Player variables
-	Player player;
+	static Player player;
 	boolean lost;
-	static ArrayList<Powerup> powerups;
+	static ArrayList<Pickable> powerups;
 	
 	// Enemies variables
 	static ArrayList<Enemy> enemies;
 	static ArrayList<Bullet> enemyBullets;
 	static ArrayList<Enemy> enemyQueue;
+	static ArrayList<ScoreText> scoreTexts;
 	
 	public Play() throws SlickException{
 	}
 	
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
-		new Sounds();
 		new Sprites();
 
 		r = new Random();
@@ -56,17 +57,16 @@ public class Play extends BasicGameState{
 		
 		level = 1;
 		
-		normal = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 16), false);
-		big = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 24), false);
-		
+		normal = new AngelCodeFont("res/fonts/04b03_16.fnt", new Image("res/fonts/04b03_16_0.png"));
 		initLevel(level);
+		scoreTexts = new ArrayList<ScoreText>();
+		powerups = new ArrayList<Pickable>();
 	}
 	
 	public void initLevel(int level) throws SlickException{
 		lost = false;
 		enemies = new ArrayList<Enemy>();
 		enemyBullets = new ArrayList<Bullet>();
-		powerups = new ArrayList<Powerup>();
 		enemyQueue = new ArrayList<Enemy>(){
 			private static final long serialVersionUID = 1L;
 		{
@@ -81,28 +81,31 @@ public class Play extends BasicGameState{
 		switch(level){
 		case 1:
 //			ID, x, y, speed, hp, spawnTime
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1000));
-			enemyQueue.add(new Enemy(0, 500, -10, 5, 1, 1000));
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1200));
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1400));
+			enemyQueue.add(new Enemy(0, 100, -10, 1000));
+			enemyQueue.add(new Enemy(0, 500, -10, 1000));
+			enemyQueue.add(new Enemy(0, 100, -10, 1200));
+			enemyQueue.add(new Enemy(0, 100, -10, 1400));
 			
-			enemyQueue.add(new Enemy(0, 130, -10, 5, 1, 2000));
-			enemyQueue.add(new Enemy(0, 180, -10, 5, 1, 2200));
-			enemyQueue.add(new Enemy(0, 210, -10, 5, 1, 2400));
-			enemyQueue.add(new Enemy(0, 240, -10, 5, 1, 2600));
+			enemyQueue.add(new Enemy(0, 130, -10, 2000));
+			enemyQueue.add(new Enemy(0, 180, -10, 2200));
+			enemyQueue.add(new Enemy(0, 210, -10, 2400));
+			enemyQueue.add(new Enemy(0, 240, -10, 2600));
 			break;
 			
 		case 2:
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1000));
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1100));
-			enemyQueue.add(new Enemy(0, 100, -10, 5, 1, 1200));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
+			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
 			break;
 			
 		default:
-			int spd = 5 + (level/5);
-			System.out.println("Speed " + spd);
 			for(int i = 0; i < 5*level; i++)
-				enemyQueue.add( new Enemy(0, r.nextInt(400)+100, -10, spd + r.nextInt(2), 1, r.nextInt(level*900)));
+				enemyQueue.add( new Enemy(r.nextInt(2), r.nextInt(Game.GWIDTH-20-50)+10, -10, r.nextInt(level*900)));
 			break;
 		}
 		
@@ -121,51 +124,41 @@ public class Play extends BasicGameState{
 //		g.drawString("(" + player.xpos + ", " + player.ypos + ")", 100, 100);
 		
 		if(playState == 0){
-			big.drawString(centerX("WAVE" + level, big), 235, "WAVE " + level);
+			Menu.font24.drawString(centerX("WAVE" + level, Menu.font24), 235, "WAVE " + level);
 		}
 		
 		player.render(g);
 		
-		g.drawString("SCORE " + Player.score, 10, 10);
-		g.drawString("WAVE " + level, gc.getWidth() - 90, 10);
-		
-		if(!lost) g.drawString("HULL ", 10, gc.getHeight()-25);
-		// health bar
-		for(int i = 0; i < player.hp; i++){
-			if(player.hp < 4)
-				g.setColor(Color.green);
-			else if(player.hp < 6)
-				g.setColor(Color.orange);
-			else
-				g.setColor(Color.green);
-			g.fillRect(60 + i*32, gc.getHeight()-22, 30, 10);
-			g.setColor(Color.white);
-		}
-		
-		// Powerups
-		for (Iterator<Powerup> iterator = powerups.iterator(); iterator.hasNext(); ) {
-			  Powerup p = iterator.next();
+		// Pickables
+		for (Iterator<Pickable> iterator = powerups.iterator(); iterator.hasNext(); ) {
+			  Pickable p = iterator.next();
 			  
 			  if(p.visible){
-				  p.sprite.draw(p.xpos, p.ypos);
+				  if(p.animation != null){
+//					  see the bounds of pickable
+//					  g.fillRect(p.getBounds().getX(), p.getBounds().getY(), p.getBounds().getWidth(), p.getBounds().getHeight());
+					  p.animation.draw(p.xpos, p.ypos);
+					  
+				  }
+				  else
+					  p.sprite.draw(p.xpos, p.ypos);
 				  p.move();
 			  }
 			  else
 				  iterator.remove();
 		}
 		
-//		// Powerups
-//		for(Powerup p : powerups){
-//			if(p.visible)
-//				p.sprite.draw(p.xpos, p.ypos);
-//		}
-		
 		// Enemies
 		for(int j = 0; j < enemies.size(); j++){
 			Enemy e = (Enemy) enemies.get(j);
-			
+//			
 			if(e.isAlive){
-				e.sprite.draw(e.xpos, e.ypos);
+//				if(e.isHit && e.hp > 1 && e.hitAnimation != null){
+//					e.hitAnimation.draw(e.xpos, e.ypos);
+//					e.isHit = false;
+//				}
+//				else
+					e.sprite.draw(e.xpos, e.ypos);
 				e.move();
 			}
 			else if(e.visible){
@@ -205,6 +198,40 @@ public class Play extends BasicGameState{
 			
 			g.drawString("Press F5 to play again.", centerX("Press F5 to play again.", normal), 400);
 		}
+		
+		// Display score texts
+		for (Iterator<ScoreText> iterator = scoreTexts.iterator(); iterator.hasNext(); ) {
+			  ScoreText st = iterator.next();
+			  
+			  if(st.visible){
+				  if(st.value == 50){
+					  g.setColor(new Color(243, 219, 83));
+				  }
+				  g.drawString(""+st.value, st.x, st.y);
+				  g.setColor(Color.white);
+				  st.move();
+			  }
+			  else
+				  iterator.remove();
+		}
+		
+		// DISPLAY HUD
+		g.drawString("SCORE " + Player.score, 10, 10);
+		g.drawString("SCRAPS " + player.scraps, 10, 30);
+		g.drawString("WAVE " + level, gc.getWidth() - 90, 10);
+		
+		if(!lost) g.drawString("HULL ", 10, gc.getHeight()-25);
+		// health bar
+		for(int i = 0; i < player.hp; i++){
+			if(player.hp < 4)
+				g.setColor(Color.green);
+			else if(player.hp < 6)
+				g.setColor(Color.orange);
+			else
+				g.setColor(Color.green);
+			g.fillRect(60 + i*32, gc.getHeight()-22, 30, 10);
+			g.setColor(Color.white);
+		}
 	}
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
@@ -226,13 +253,12 @@ public class Play extends BasicGameState{
 				
 				// TESTING ONLY (INC/DEC SPEED)
 				if(input.isKeyPressed(Input.KEY_2)){
-					player.speed += 0.5f;
+					player.bulletDelay += 20;
 				}
 				else if(input.isKeyPressed(Input.KEY_1))
-					player.speed -= 0.5f;
+					player.bulletDelay -= 20;
 				
 				// MOVEMENT
-				
 				// if moving
 				if(input.isKeyDown(Input.KEY_UP) || input.isKeyDown(Input.KEY_DOWN) ||
 				   input.isKeyDown(Input.KEY_LEFT) || input.isKeyDown(Input.KEY_RIGHT)){
@@ -266,7 +292,7 @@ public class Play extends BasicGameState{
 					else if(counter >= player.bulletDelay)
 						player.readyToFire = true;
 				}
-			}
+			} // end of if(player alive)
 			else
 			{
 				// Respawning player...
@@ -307,7 +333,7 @@ public class Play extends BasicGameState{
 					initLevel(++level);
 				}
 			}
-		}
+		}// end of if(!lost)
 
 		
 		
@@ -350,50 +376,72 @@ public class Play extends BasicGameState{
 					enemies.get(j).hit(player.damage);
 					bullets.get(i).hit();
 				}
+				else
+					enemies.get(j).isHit = false;
 			}
 		}
 		
 		// Ship collisions
 		
-		// Edges Collision
-		if(player.xpos >= Game.GWIDTH-10 - player.sprite.getWidth()) player.xpos = Game.GWIDTH-10 - player.sprite.getWidth(); //right
-		if(player.xpos <= 10) player.xpos = 10; //left
-		if(player.ypos <= 10) player.ypos = 10; //up
-		if(player.ypos >= Game.GHEIGHT-30 - player.sprite.getHeight()) player.ypos = Game.GHEIGHT-30 - player.sprite.getHeight(); //down
-		
-		// loop every enemy
-		for(int i = 0; i < enemies.size(); i++){
-			eTemp = (Enemy) enemies.get(i);
-			eBounds = eTemp.getBounds();
+		if(player.isAlive){
+			// Edges Collision
+			if(player.xpos >= Game.GWIDTH-10 - player.sprite.getWidth()) player.xpos = Game.GWIDTH-10 - player.sprite.getWidth(); //right
+			if(player.xpos <= 10) player.xpos = 10; //left
+			if(player.ypos <= 10) player.ypos = 10; //up
+			if(player.ypos >= Game.GHEIGHT-30 - player.sprite.getHeight()) player.ypos = Game.GHEIGHT-30 - player.sprite.getHeight(); //down
 			
-			if(enemyBullets.size() < 1)
-//				eTemp.fire();
-			
-			// check if enemy hits player
-			if(p.intersects(eBounds) && player.isAlive && !player.invulnerable && enemies.get(i).isAlive){
-				player.hit(1);
-				enemies.get(i).die();
-				if(player.hp < 1)
-					lost = true;
+			// loop every enemy
+			for(int i = 0; i < enemies.size(); i++){
+				eTemp = (Enemy) enemies.get(i);
+				eBounds = eTemp.getBounds();
+				
+				if(enemyBullets.size() < 1)
+//					eTemp.fire();
+				
+				// check if enemy hits player
+				if(p.intersects(eBounds) && !player.invulnerable && enemies.get(i).isAlive){
+					player.hit(1);
+					enemies.get(i).die();
+					if(player.hp < 1)
+						lost = true;
+				}
+				// check if after explosion or beyond screen
+				if(eTemp.explode.isStopped() || eTemp.ypos > bottomBorder)
+					enemies.remove(i);
 			}
-			// check if after explosion or beyond screen
-			if(eTemp.explode.isStopped() || eTemp.ypos > bottomBorder)
-				enemies.remove(i);
+			
+			// loop pickalbes
+			for (Iterator<Pickable> iterator = powerups.iterator(); iterator.hasNext(); ) {
+				  Pickable pick = iterator.next();
+				  if(pick.getBounds().intersects(p)){
+					  if(pick.id == 0) { //coin
+						  Coin c = (Coin) pick;
+						  c.picked = true;
+						  
+						  if(c.getRealBounds().intersects(p)){
+							  iterator.remove();
+							  player.pickCoin(c.value);
+							  scoreTexts.add(new ScoreText(c.xpos, c.ypos, c.value));
+						  }
+						  
+					  }// end coin
+					  else{
+						  player.pickPowerup(pick.id);
+						  iterator.remove();					  
+					  }
+				  }
+				  else if(pick.ypos - pick.getBounds().getHeight() > bottomBorder)
+					  iterator.remove();
+			}
 		}
 		
-		// loop powerups
-		for (Iterator<Powerup> iterator = powerups.iterator(); iterator.hasNext(); ) {
-			  Powerup pup = iterator.next();
-			  if(pup.getBounds().intersects(p)){
-				  player.pickPowerup(pup.powerupID);
-				  iterator.remove();
-			  }
-			  else if(pup.ypos > bottomBorder)
-				  iterator.remove();
-		}
 	}
 	
 	public static int centerX(String string, TrueTypeFont font){
+		return (Game.GWIDTH - font.getWidth(string))/2;
+	}
+	
+	public static int centerX(String string, AngelCodeFont font){
 		return (Game.GWIDTH - font.getWidth(string))/2;
 	}
 	

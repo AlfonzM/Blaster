@@ -1,13 +1,12 @@
 package blastergame;
 
-import java.awt.Font;
-
+import org.newdawn.slick.AngelCodeFont;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -18,7 +17,7 @@ public class Menu extends BasicGameState{
 	private long blink;
 	private boolean show = true;
 	private Starfield bg;
-	TrueTypeFont h1, h2, h3;
+	public static AngelCodeFont font40, font24, font8;
 	int x, y;
 	int rectWidth, rectHeight;
 	
@@ -32,16 +31,19 @@ public class Menu extends BasicGameState{
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
 		nav = 0;
 		bg = new Starfield();
-		h1 = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 48), false);
-		h2 = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 24), false);
-		h3 = new TrueTypeFont(new java.awt.Font("Munro Small", Font.PLAIN, 10), false);
-		x = 150;
+		font40 = new AngelCodeFont("res/fonts/04b03.fnt", new Image("res/fonts/04b03_0.png"));
+//		h1 = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 48), false);
+		font24 = new AngelCodeFont("res/fonts/04b03_24.fnt", new Image("res/fonts/04b03_24_0.png"));
+		font8 = new AngelCodeFont("res/fonts/04b03_8.fnt", new Image("res/fonts/04b03_8_0.png"));
 		y = 120;
 		
 		rectWidth = 294;
 		rectHeight = 30;
+		x = (Game.GWIDTH - rectWidth)/2;
 		
-		rect = new Rectangle((Game.GWIDTH - rectWidth)/2, y + 166, rectWidth, rectHeight);
+		rect = new Rectangle(x, y + 166, rectWidth, rectHeight);
+
+		Sounds.music.loop(1, 0.5f);
 	}
 	
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
@@ -49,9 +51,10 @@ public class Menu extends BasicGameState{
 		g.drawImage(bg.bg, 0, Starfield.bgY-640);
 		bg.move();
 		
-		h1.drawString(Play.centerX("BLASTER 2.0", h1), y, "BLASTER 2.0");
+//		h1.drawString(Play.centerX("BLASTER 2.0", h1), y, "BLASTER 2.0");
+		font40.drawString(Play.centerX("BLASTER 2.0", font40), 100, "BLASTER 2.0");
 		
-		g.setFont(h2);
+		g.setFont(font24);
 
 		rect.setY((286 + 35*nav));
 		g.fill(rect);
@@ -82,8 +85,7 @@ public class Menu extends BasicGameState{
 //		}
 
 		g.setColor(Color.white);
-		g.setFont(h3);
-		g.drawString("Version 0.1", 10, Game.GHEIGHT - 20);
+		font8.drawString(10, Game.GHEIGHT - 16, "VERSION 0.1");
 		
 		g.setColor(Color.white);
 	}
