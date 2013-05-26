@@ -13,7 +13,7 @@ public class EnemyBullet extends Bullet{
 		bx += xDir * bSpeed;
 		by += yDir * bSpeed;
 		
-		if(by < 0){
+		if(by > Game.GHEIGHT){
 			visible = false;
 		}
 	}

@@ -35,16 +35,17 @@ public class Sprites {
 		playerSprites = new Image("res/playerSprite.png");
 		
 		// bullets
-		bSprites.add(sprites.getSubImage(0, 0, 8, 18));
-		bSprites.add(sprites.getSubImage(9, 0, 10, 10));
+		bSprites.add(sprites.getSubImage(0, 0, 8, 18)); // 0 blue
+		bSprites.add(sprites.getSubImage(9, 0, 10, 10)); // 1 pink circle
+		bSprites.add(sprites.getSubImage(19, 0, 23, 78)); // missile
 		
 		// power up
 		powerupSprites.add(sprites.getSubImage(51, 0, 22, 22));
 		
 		// enemy ships
-		eSprites.add(new Image("res/enemy1.png"));
-		eSprites.add(new Image("res/enemy2.png").getSubImage(0, 0, 74, 58));
-		eSprites.add(new Image("res/enemy2.png").getSubImage(74, 0, 74, 58));
+		eSprites.add(new Image("res/enemy1.png")); // 0 small enemy
+		eSprites.add(new Image("res/enemy2.png").getSubImage(0, 0, 74, 58)); // 1 big enemy
+		eSprites.add(new Image("res/enemy2.png").getSubImage(74, 0, 74, 58)); // big enemy spark
 		
 		// explosions
 		for(int i = 0; i < explosions.length; i++){

@@ -22,19 +22,20 @@ public class Play extends BasicGameState{
 	// Game variables
 	Random r;
 	private int stateID = 1;
-	private long counter = 0, gameTime, playerCounter;
+	private long gameTime, playerCounter;
 //	private Random random = new Random();
 	private Starfield bg;
 	public static int level; // current level
 	public static AngelCodeFont normal;
 	private int playState; // 0 = display wave number, 1 = game, 2 = gap between 0 and 1
 	private String scoreText;
+	private int scoreToAdd;
+	float cellWidth;
 	
 	public static final int bottomBorder = Game.GHEIGHT - 90; // above health
 	
 	// Player variables
 	static Player player;
-	boolean lost;
 	static ArrayList<Pickable> powerups;
 	
 	// Enemies variables
@@ -61,12 +62,16 @@ public class Play extends BasicGameState{
 		initLevel(level);
 		scoreTexts = new ArrayList<ScoreText>();
 		powerups = new ArrayList<Pickable>();
+		enemyBullets = new ArrayList<Bullet>();
+		player.lost = false;
 	}
 	
 	public void initLevel(int level) throws SlickException{
-		lost = false;
+		
+		gameTime = 0;
+		playState = 0;
+		
 		enemies = new ArrayList<Enemy>();
-		enemyBullets = new ArrayList<Bullet>();
 		enemyQueue = new ArrayList<Enemy>(){
 			private static final long serialVersionUID = 1L;
 		{
@@ -74,9 +79,6 @@ public class Play extends BasicGameState{
 //			for(int i = 0; i < 1000; i++)
 //				add( new Enemy(0, r.nextInt(400)+100, -10, 5, 1, r.nextInt(300*1000)));
 		}};
-		
-		gameTime = 0;
-		playState = 0;
 		
 		switch(level){
 		case 1:
@@ -96,20 +98,13 @@ public class Play extends BasicGameState{
 			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
 			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
 			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
-			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
-			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
-			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
-			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
-			enemyQueue.add(new Enemy(1, r.nextInt(Game.GWIDTH-20-50)+10, -10, 1000));
 			break;
 			
 		default:
-			for(int i = 0; i < 5*level; i++)
+			for(int i = 0; i < 4*level; i++)
 				enemyQueue.add( new Enemy(r.nextInt(2), r.nextInt(Game.GWIDTH-20-50)+10, -10, r.nextInt(level*900)));
 			break;
 		}
-		
-		playState = 0;
 	}
 	
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
@@ -128,6 +123,7 @@ public class Play extends BasicGameState{
 		}
 		
 		player.render(g);
+//		g.fill(player.getBounds());
 		
 		// Pickables
 		for (Iterator<Pickable> iterator = powerups.iterator(); iterator.hasNext(); ) {
@@ -135,8 +131,6 @@ public class Play extends BasicGameState{
 			  
 			  if(p.visible){
 				  if(p.animation != null){
-//					  see the bounds of pickable
-//					  g.fillRect(p.getBounds().getX(), p.getBounds().getY(), p.getBounds().getWidth(), p.getBounds().getHeight());
 					  p.animation.draw(p.xpos, p.ypos);
 					  
 				  }
@@ -153,12 +147,14 @@ public class Play extends BasicGameState{
 			Enemy e = (Enemy) enemies.get(j);
 //			
 			if(e.isAlive){
-//				if(e.isHit && e.hp > 1 && e.hitAnimation != null){
-//					e.hitAnimation.draw(e.xpos, e.ypos);
-//					e.isHit = false;
-//				}
-//				else
-					e.sprite.draw(e.xpos, e.ypos);
+				if(e.isHit && e.hp > 1){
+					e.hitSprite.draw(e.xpos, e.ypos);
+					e.isHit = false;
+				}
+				else{
+					e.defaultSprite.draw(e.xpos, e.ypos);
+				}
+				 
 				e.move();
 			}
 			else if(e.visible){
@@ -172,25 +168,16 @@ public class Play extends BasicGameState{
 			Bullet temp = (Bullet) bullets.get(i);
 			g.setColor(Color.white);
 			temp.sprite.draw(temp.bx, temp.by);
-			
-			if(temp.visible)
-				temp.move();
-			else
-				bullets.remove(i);
 		}
 		
+		// Enemy bullets
 		for(int i = 0; i < enemyBullets.size(); i++){
 			EnemyBullet temp = (EnemyBullet) enemyBullets.get(i);
 			temp.sprite.draw(temp.bx, temp.by);
-			
-			if(temp.visible)
-				temp.move(0, 1);
-			else
-				enemyBullets.remove(i);
 		}
 		
 		// Game Over
-		if(lost) {
+		if(player.lost) {
 			g.drawString("GAME OVER", centerX("GAME OVER", normal), 250);
 
 			scoreText = "SCORE " + Player.score;
@@ -220,25 +207,53 @@ public class Play extends BasicGameState{
 		g.drawString("SCRAPS " + player.scraps, 10, 30);
 		g.drawString("WAVE " + level, gc.getWidth() - 90, 10);
 		
-		if(!lost) g.drawString("HULL ", 10, gc.getHeight()-25);
-		// health bar
-		for(int i = 0; i < player.hp; i++){
-			if(player.hp < 4)
-				g.setColor(Color.green);
-			else if(player.hp < 6)
-				g.setColor(Color.orange);
-			else
-				g.setColor(Color.green);
-			g.fillRect(60 + i*32, gc.getHeight()-22, 30, 10);
-			g.setColor(Color.white);
+		if(!player.lost){
+			g.drawString("HULL ", 10, gc.getHeight()-25);
+			
+			// health bar
+			for(int i = 0; i < player.hp; i++){
+				g.setColor(new Color(80, 255, 21));
+				g.fillRect(60 + i*32, gc.getHeight()-22, 30, 10);
+			}
+			
+			// COLOR POWERUP BARS
+			g.setLineWidth(2);
+			int x = 200, y = Game.GHEIGHT - 26;
+			int w = 180, h = 16;
+
+			// red
+			g.setColor(new Color(255, 21, 21));
+			g.drawLine(x, y, x + w, y);
+			g.drawLine(x, y, x, y + h);
+			g.drawLine(x, y + h, x + w, y + h);
+			g.drawLine(x + w, y, x + w, y + h);
+			cellWidth = (float) (w - 6 - (player.redMax - 1)) / player.redMax;
+			for(int i = 0 ; i < player.redScraps ; i++){
+				g.fillRect((x+3) + (cellWidth * i) + i, y + 4, cellWidth, h - 6);
+			}
+			
+			// green
+			x = x + w + 20;
+			g.setColor(new Color(80, 255, 21));
+			g.drawLine(x, y, x + w, y);
+			g.drawLine(x, y, x, y + h);
+			g.drawLine(x, y + h, x + w, y + h);
+			g.drawLine(x + w, y, x + w, y + h);
+			cellWidth = (float) (w - 6 - (player.greenMax - 1)) / player.greenMax;
+			for(int i = 0 ; i < player.greenScraps ; i++){
+				g.fillRect((x+3) + (cellWidth * i) + i, y + 4, cellWidth, h - 6);
+			}
 		}
+		
+		g.setColor(Color.white);
 	}
 	
 	public void update(GameContainer gc, StateBasedGame sbg, int delta) throws SlickException {
 		Input input = gc.getInput();
 		
-		if(!lost)
+		if(!player.lost)
 		{
+			
 			if(player.isAlive){
 				
 				if(player.invulnerable){
@@ -282,15 +297,14 @@ public class Play extends BasicGameState{
 				if(input.isKeyDown(Input.KEY_ESCAPE)) { sbg.pauseUpdate(); }
 	
 				// Shoot
-				counter += delta;
+				player.bulletCounter += delta;
 				if (input.isKeyDown(Input.KEY_SPACE)){
-					if(player.readyToFire){
-						player.fire();
-						player.readyToFire = false;
-						counter = 0;
-					}
-					else if(counter >= player.bulletDelay)
-						player.readyToFire = true;
+					player.fire();
+				}
+				
+				player.missileCounter += delta;
+				if(input.isKeyDown(Input.KEY_Q)){
+					player.fireMissile();
 				}
 			} // end of if(player alive)
 			else
@@ -333,7 +347,7 @@ public class Play extends BasicGameState{
 					initLevel(++level);
 				}
 			}
-		}// end of if(!lost)
+		}// end of if(!player.lost)
 
 		
 		
@@ -358,12 +372,10 @@ public class Play extends BasicGameState{
 		Enemy eTemp;
 		Rectangle p = player.getBounds();
 		
-		// Bullets collision
-		ArrayList<Bullet> bullets = Player.bullets;
-		
-		// loop every bullet
-		for(int i = 0; i < bullets.size(); i++){
-			Bullet bTemp = (Bullet) bullets.get(i);
+		// Bullets collision		
+		// loop every player bullet
+		for(int i = 0; i < Player.bullets.size(); i++){
+			Bullet bTemp = (Bullet) Player.bullets.get(i);
 			Rectangle bulletBounds = bTemp.getBounds();
 			
 			// loop every live enemy
@@ -374,11 +386,31 @@ public class Play extends BasicGameState{
 				// check if bullet hits enemy
 				if(eBounds.intersects(bulletBounds) && eTemp.isAlive){
 					enemies.get(j).hit(player.damage);
-					bullets.get(i).hit();
+					Player.bullets.get(i).hit();
 				}
-				else
-					enemies.get(j).isHit = false;
+			}			
+			
+			if(bTemp.visible)
+				bTemp.move();
+			else
+				Player.bullets.remove(i);
+		}
+		
+		// loop every enemy bullet
+		for(int i = 0 ; i < enemyBullets.size(); i++){
+			EnemyBullet bTemp = (EnemyBullet) enemyBullets.get(i);
+			if(bTemp.getBounds().intersects(player.getBounds())){
+				player.hit(1);
+				enemyBullets.get(i).hit();
 			}
+			else if(bTemp.by > Game.GHEIGHT){
+				bTemp.visible = false;
+			}
+			
+			if(!bTemp.visible)
+				enemyBullets.remove(i);
+			else
+				bTemp.move(0, 1);
 		}
 		
 		// Ship collisions
@@ -395,15 +427,13 @@ public class Play extends BasicGameState{
 				eTemp = (Enemy) enemies.get(i);
 				eBounds = eTemp.getBounds();
 				
-				if(enemyBullets.size() < 1)
-//					eTemp.fire();
+				if(eTemp.enemyID == 1 && enemyBullets.size() < 1)
+					eTemp.fire();
 				
 				// check if enemy hits player
 				if(p.intersects(eBounds) && !player.invulnerable && enemies.get(i).isAlive){
 					player.hit(1);
 					enemies.get(i).die();
-					if(player.hp < 1)
-						lost = true;
 				}
 				// check if after explosion or beyond screen
 				if(eTemp.explode.isStopped() || eTemp.ypos > bottomBorder)

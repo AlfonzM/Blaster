@@ -2,17 +2,15 @@ package blastergame;
 
 import java.util.Random;
 
-import org.newdawn.slick.Animation;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.geom.Rectangle;
 
 public class Enemy extends Ship{
 	int score;
 	int enemyID;
 	int spawnTime;
 	Image defaultSprite, hitSprite;
-	
-	Animation animation, hitAnimation;
 	
 	boolean isHit;
 	
@@ -21,22 +19,21 @@ public class Enemy extends Ship{
 		this.spawnTime = spawnTime;
 		this.enemyID = enemyID;
 		
+		defaultSprite = Sprites.eSprites.get(enemyID);
+		Random r = new Random();
+		
 		switch(this.enemyID){
 		case 0:
 			speed = 5;
 			hp = 1;
-			score = 50;
-			animation = new Animation(new Image[] { defaultSprite, defaultSprite }, 1000, true);
-			hitAnimation = null;
+			score = 100;
 			break;
 			
 		case 1:
-			speed = 1f;
-			hp = 10;
-			score = 100;
+			speed = r.nextInt(3)+2;
+			hp = 4;
+			score = 150;
 			hitSprite = Sprites.eSprites.get(2);
-			animation = new Animation(new Image[] { defaultSprite, defaultSprite }, 1000, true);
-			hitAnimation = new Animation(new Image[] { hitSprite, defaultSprite }, 100, true);
 			break;
 			
 		default:
@@ -47,13 +44,12 @@ public class Enemy extends Ship{
 		}
 		
 		new Sprites();
-		defaultSprite = Sprites.eSprites.get(enemyID);
 		sprite = defaultSprite;
 		isAlive = true;
 	}
 	
 	public void fire() throws SlickException{
-		EnemyBullet b = new EnemyBullet(xpos, ypos, 0, 15);
+		EnemyBullet b = new EnemyBullet(xpos, ypos, 1, 5);
 		Play.enemyBullets.add(b);
 	}
 	
@@ -80,5 +76,16 @@ public class Enemy extends Ship{
 		if(r.nextInt(2)==0){
 			Play.powerups.add(new Coin(xpos, ypos, 0));
 		}
+	}
+	
+	@Override
+	public Rectangle getBounds(){
+		Rectangle bounds;
+		if(enemyID == 1)
+			bounds = new Rectangle(xpos + 15, ypos + 10, sprite.getWidth() - 30, sprite.getHeight() - 20);
+		else
+			bounds = new Rectangle(xpos, ypos, sprite.getWidth(), sprite.getHeight());
+		
+		return bounds;
 	}
 }

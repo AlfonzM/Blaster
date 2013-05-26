@@ -45,13 +45,15 @@ public class Coin extends Pickable{
 //				goUp = false;
 //		}
 //		else
+		
+		
 		Player p = Play.player;
-		if(picked && p.isAlive){
+		if(picked && p.isAlive){ // magnet effect
 			int cspeed = (int) (p.speed + 2);
 			xpos += (p.xpos + p.sprite.getWidth() / 2 > xpos + sprite.getWidth()/2)? cspeed : -cspeed; 
 			ypos += (p.ypos + p.sprite.getHeight() / 2 > ypos - sprite.getHeight()/2)? cspeed : -cspeed;
 		}
-		else
+		else // move down
 			super.move();
 	}
 	
