@@ -13,17 +13,13 @@ public class Sprites {
 	static ArrayList<Image> bSprites;
 	static ArrayList<Image> eSprites;
 	static ArrayList<Image> powerupSprites;
-	static Image[] explosions;
-	static Image[] coin1Sprites;
-	static Animation explode, coin1;
+	static Animation explode, coin1, redScraps, yellowScraps;
 	private int explodeDelay;
 	
 	public Sprites() throws SlickException{
 		bSprites = new ArrayList<Image>();
 		eSprites = new ArrayList<Image>();
 		powerupSprites = new ArrayList<Image>();
-		explosions = new Image[10];
-		coin1Sprites = new Image[4];
 		
 		explodeDelay = 40;
 		
@@ -48,18 +44,28 @@ public class Sprites {
 		eSprites.add(new Image("res/enemy2.png").getSubImage(74, 0, 74, 58)); // big enemy spark
 		
 		// explosions
+		Image[] explosions = new Image[10];
 		for(int i = 0; i < explosions.length; i++){
 			explosions[i] = explosionspritesheet.getSubImage(i*84, 0, 84, 64);
 		}
 		
 		explode = new Animation(explosions, explodeDelay, true);
 		
-		// coins
+		// coins and scraps
+		Image[] coin1Sprites = new Image[4];
+		Image[] redSprites = new Image[4];
+		Image[] yellowSprites = new Image[4];
 		Image img = new Image("res/coins.png");
-		for(int i = 0, coin1size = 16; i < 4; i++){
+		Image img2 = new Image("res/redScraps.png");
+		Image img3 = new Image("res/yellowScraps.png");
+		for(int i = 0, coin1size = img.getHeight(), scrapSize = img2.getHeight(); i < 4; i++){
 			coin1Sprites[i] = img.getSubImage(i * coin1size, 0, coin1size, coin1size);
+			redSprites[i] = img2.getSubImage(i * scrapSize, 0, scrapSize, scrapSize);
+			yellowSprites[i] = img3.getSubImage(i * scrapSize, 0, scrapSize, scrapSize);
 		}
+		coin1 = new Animation(coin1Sprites, 100, true);
+		redScraps = new Animation(redSprites, 100, true);
+		yellowScraps = new Animation(yellowSprites, 100, true);
 		
-		coin1 = new Animation(coin1Sprites, 100, true); 
 	}
 }

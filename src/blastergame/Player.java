@@ -9,14 +9,14 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
 
 public class Player extends Ship{
-	static int score;
+	static int score, scoreToAdd;
 	int bulletDelay= 120, missileDelay = 500; //delay between bullets
 	int respawnTime, invulnerableTime;
 	float bulletCounter, missileCounter;
-	int bulletType;
+	int bulletLevel, missileLevel;
 	int startX, startY;
-	int scraps, redScraps, greenScraps;
-	int redMax, redUse, greenMax, greenUse;
+	int scraps, scrapsToAdd, redScraps, yellowScraps;
+	int redMax, redUse, yellowMax, yellowUse;
 	boolean readyToFire, readyToRespawn, invulnerable, lost;
 	boolean readyToMissile;
 	boolean display;
@@ -44,17 +44,20 @@ public class Player extends Ship{
 		respawnPlayer();
 		
 		score = 0;
+		scoreToAdd = 0;
+		
+		// scraps
 		redScraps = 0;
-		greenScraps = 0;
-		redMax = 10;
-		greenMax = 10;
+		yellowScraps = 0;
+		redMax = 9;
+		yellowMax = 10;
 		redUse = 3;
-		greenUse = greenMax;
+		yellowUse = yellowMax;
 		
 		respawnTime = 3000;
 		invulnerableTime = 3000;
 		
-		bulletType = 0;
+		bulletLevel = 0;
 		missileCounter = 0;
 		bulletCounter = 0;
 		damage = 1;
@@ -65,6 +68,7 @@ public class Player extends Ship{
 		invulnerable = false;
 		display = true;
 		scraps = 0;
+		scrapsToAdd = 0;
 		
 		// initial bullet size
 		bullets = new ArrayList<Bullet>();
@@ -78,10 +82,10 @@ public class Player extends Ship{
 		invulnerable = true;
 	}
 	
-	public void fire() throws SlickException{		// Increase bullet size per score
+	public void fire() throws SlickException{
 
-		if(bulletType != 3 && readyToFire){
-			switch(bulletType){
+		if(bulletLevel != 3 && readyToFire){
+			switch(bulletLevel){
 			case 0:
 				float minX = -5f;
 				float maxX = 5f;
@@ -113,8 +117,14 @@ public class Player extends Ship{
 	}
 	
 	public void fireMissile() throws SlickException{
-		if(readyToMissile && redScraps >= redUse){
-			bullets.add(new Missile(xpos, ypos));
+		if(readyToMissile /*&& redScraps >= redUse */){
+			switch(missileLevel){
+			case 0:
+				bullets.add(new Missile(xpos + sprite.getWidth()/2 - Sprites.bSprites.get(2).getWidth()/2, ypos));				
+				break;
+			}
+			
+			// play missile sound
 			readyToMissile = false;
 			missileCounter = 0;
 			redScraps -= redUse;
@@ -131,6 +141,7 @@ public class Player extends Ship{
 			break;
 			
 		case 1: // down
+			if(ypos < Play.bottomBorder)
 			ypos += speed;
 			break;
 			
@@ -153,22 +164,27 @@ public class Player extends Ship{
 		Sounds.bleep.play();
 	}
 	
-	public void pickCoin(int value){
-		// play coin sound
-		
-		switch(r.nextInt(2)){
-		case 0:
-			greenScraps++;
+	public void pickScrap(Scrap s){	
+		switch(s.id){
+		case 0: // coin
+			Coin c = (Coin) s;
+			scrapsToAdd += c.value;
 			break;
 			
-		case 1:
-			redScraps++;
+		case 1: // red
+			if(redScraps < redMax)
+				redScraps++;
 			break;
 			
-		default:
+		case 2: // green
+			if(yellowScraps < yellowMax)
+				yellowScraps++;
+			break;
+			
+		default: 
 			break;
 		}
-		scraps += value;
+//		scrapsToAdd += ;
 		Sounds.coin1.play();
 	}
 	

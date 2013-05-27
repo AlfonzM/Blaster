@@ -32,7 +32,6 @@ public class Menu extends BasicGameState{
 		nav = 0;
 		bg = new Starfield();
 		font40 = new AngelCodeFont("res/fonts/04b03.fnt", new Image("res/fonts/04b03_0.png"));
-//		h1 = new TrueTypeFont(new java.awt.Font("04b03", Font.PLAIN, 48), false);
 		font24 = new AngelCodeFont("res/fonts/04b03_24.fnt", new Image("res/fonts/04b03_24_0.png"));
 		font8 = new AngelCodeFont("res/fonts/04b03_8.fnt", new Image("res/fonts/04b03_8_0.png"));
 		y = 120;
@@ -52,7 +51,7 @@ public class Menu extends BasicGameState{
 		bg.move();
 		
 //		h1.drawString(Play.centerX("BLASTER 2.0", h1), y, "BLASTER 2.0");
-		font40.drawString(Play.centerX("BLASTER 2.0", font40), 100, "BLASTER 2.0");
+		font40.drawString(Play.centerX("BLASTER", font40), 100, "BLASTER");
 		
 		g.setFont(font24);
 
@@ -85,7 +84,7 @@ public class Menu extends BasicGameState{
 //		}
 
 		g.setColor(Color.white);
-		font8.drawString(10, Game.GHEIGHT - 16, "VERSION 0.1");
+		font8.drawString(10, Game.GHEIGHT - 16, "VERSION 0.2");
 		
 		g.setColor(Color.white);
 	}

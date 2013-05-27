@@ -1,9 +1,12 @@
 package blastergame;
 
+import org.newdawn.slick.Color;
+
 public class ScoreText {
 	float x, y, yTarget;
 	int value;
 	boolean visible;
+	public Color color;
 	
 	public ScoreText(float xpos, float ypos, int value){
 		this.x = xpos;
@@ -11,7 +14,10 @@ public class ScoreText {
 		this.value = value;
 		
 		yTarget = ypos - 40;
-		
+		if(value == 50)
+			color = new Color(252, 255, 0);
+		else
+			color = Color.white;
 		visible = true;
 	}
 	

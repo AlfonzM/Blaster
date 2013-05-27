@@ -66,15 +66,27 @@ public class Enemy extends Ship{
 	
 	public void die() throws SlickException{
 		super.die();
-		Player.score += score;
+		Player.scoreToAdd += score;
 		explode.stopAt(9);
 		Play.scoreTexts.add(new ScoreText(xpos, ypos, score));
 		
 		Random r = new Random();
 		
-		// coin 50%
-		if(r.nextInt(2)==0){
-			Play.powerups.add(new Coin(xpos, ypos, 0));
+		switch(r.nextInt(3)){
+		case 0:
+			Play.scraps.add(new Coin(xpos, ypos, 0));
+			break;
+			
+		case 1:
+			Play.scraps.add(new ColoredScraps(xpos, ypos, 1));
+			break;
+			
+		case 2:
+			Play.scraps.add(new ColoredScraps(xpos, ypos, 2));
+			break;
+			
+		default:
+			break;
 		}
 	}
 	

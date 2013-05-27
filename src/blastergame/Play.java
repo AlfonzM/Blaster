@@ -1,7 +1,9 @@
 package blastergame;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Random;
 
 import org.newdawn.slick.AngelCodeFont;
@@ -11,7 +13,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.TrueTypeFont;
 import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -29,14 +30,14 @@ public class Play extends BasicGameState{
 	public static AngelCodeFont normal;
 	private int playState; // 0 = display wave number, 1 = game, 2 = gap between 0 and 1
 	private String scoreText;
-	private int scoreToAdd;
 	float cellWidth;
+	private String scoreLabel, scrapsLabel;
 	
 	public static final int bottomBorder = Game.GHEIGHT - 90; // above health
 	
 	// Player variables
 	static Player player;
-	static ArrayList<Pickable> powerups;
+	static ArrayList<Scrap> scraps;
 	
 	// Enemies variables
 	static ArrayList<Enemy> enemies;
@@ -61,7 +62,7 @@ public class Play extends BasicGameState{
 		normal = new AngelCodeFont("res/fonts/04b03_16.fnt", new Image("res/fonts/04b03_16_0.png"));
 		initLevel(level);
 		scoreTexts = new ArrayList<ScoreText>();
-		powerups = new ArrayList<Pickable>();
+		scraps = new ArrayList<Scrap>();
 		enemyBullets = new ArrayList<Bullet>();
 		player.lost = false;
 	}
@@ -102,7 +103,7 @@ public class Play extends BasicGameState{
 			
 		default:
 			for(int i = 0; i < 4*level; i++)
-				enemyQueue.add( new Enemy(r.nextInt(2), r.nextInt(Game.GWIDTH-20-50)+10, -10, r.nextInt(level*900)));
+				enemyQueue.add( new Enemy(r.nextInt(2), r.nextInt(Game.GWIDTH-20-50)+10, -10, r.nextInt(level*1200)));
 			break;
 		}
 	}
@@ -125,17 +126,12 @@ public class Play extends BasicGameState{
 		player.render(g);
 //		g.fill(player.getBounds());
 		
-		// Pickables
-		for (Iterator<Pickable> iterator = powerups.iterator(); iterator.hasNext(); ) {
-			  Pickable p = iterator.next();
+		// Scraps
+		for (Iterator<Scrap> iterator = scraps.iterator(); iterator.hasNext(); ) {
+			  Scrap p = iterator.next();
 			  
 			  if(p.visible){
-				  if(p.animation != null){
-					  p.animation.draw(p.xpos, p.ypos);
-					  
-				  }
-				  else
-					  p.sprite.draw(p.xpos, p.ypos);
+				  p.animation.draw(p.xpos, p.ypos);
 				  p.move();
 			  }
 			  else
@@ -191,9 +187,7 @@ public class Play extends BasicGameState{
 			  ScoreText st = iterator.next();
 			  
 			  if(st.visible){
-				  if(st.value == 50){
-					  g.setColor(new Color(243, 219, 83));
-				  }
+				  g.setColor(st.color);
 				  g.drawString(""+st.value, st.x, st.y);
 				  g.setColor(Color.white);
 				  st.move();
@@ -203,23 +197,35 @@ public class Play extends BasicGameState{
 		}
 		
 		// DISPLAY HUD
-		g.drawString("SCORE " + Player.score, 10, 10);
-		g.drawString("SCRAPS " + player.scraps, 10, 30);
-		g.drawString("WAVE " + level, gc.getWidth() - 90, 10);
+		scoreLabel =  NumberFormat.getNumberInstance(Locale.US).format(Player.score);
+		g.drawString(scoreLabel, centerX(scoreLabel, normal), 10);
+		g.setColor(new Color(252, 255, 0));
+		scrapsLabel = "SCRAPS " + NumberFormat.getNumberInstance(Locale.US).format(player.scraps);
+		g.drawString(scrapsLabel, gc.getWidth() - normal.getWidth(scrapsLabel) - 10, 10);
+		g.setColor(Color.white);
+		g.drawString("WAVE " + level, 10, 10);
 		
 		if(!player.lost){
-			g.drawString("HULL ", 10, gc.getHeight()-25);
-			
-			// health bar
-			for(int i = 0; i < player.hp; i++){
-				g.setColor(new Color(80, 255, 21));
-				g.fillRect(60 + i*32, gc.getHeight()-22, 30, 10);
-			}
-			
-			// COLOR POWERUP BARS
+			// HEALTH/SCRAP BARS
+			int x = 10, y = Game.GHEIGHT - 26;
+			int w = 180, h = 12;
 			g.setLineWidth(2);
-			int x = 200, y = Game.GHEIGHT - 26;
-			int w = 180, h = 16;
+			
+			// HEALTH
+			int textY = y - 15;
+			g.drawString("HULL " + player.hp + "/3", x, textY);
+			g.drawString("WEAPON " + player.redScraps/player.redUse + "/" + player.redMax/3, x + w + 30, textY);
+			g.drawString("SHIELD " + (int) ((float)player.yellowScraps/(float)player.yellowMax * 100) + "%", x + w + 30 + w + 30, textY);
+			g.setColor(new Color(80, 255, 21));
+			g.drawLine(x, y, x + w, y);
+			g.drawLine(x, y, x, y + h);
+			g.drawLine(x, y + h, x + w, y + h);
+			g.drawLine(x + w, y, x + w, y + h);
+			cellWidth = (float) (w - 6 - (3 - 1)) / 3;
+			for(int i = 0 ; i < player.hp ; i++){
+				g.fillRect((x+3) + (cellWidth * i) + i, y + 4, cellWidth, h - 6);
+			}
+			x = x + w + 30;
 
 			// red
 			g.setColor(new Color(255, 21, 21));
@@ -232,17 +238,29 @@ public class Play extends BasicGameState{
 				g.fillRect((x+3) + (cellWidth * i) + i, y + 4, cellWidth, h - 6);
 			}
 			
-			// green
-			x = x + w + 20;
-			g.setColor(new Color(80, 255, 21));
+			// yellow
+			x = x + w + 30;
+			g.setColor(new Color(252, 255, 21));
 			g.drawLine(x, y, x + w, y);
 			g.drawLine(x, y, x, y + h);
 			g.drawLine(x, y + h, x + w, y + h);
 			g.drawLine(x + w, y, x + w, y + h);
-			cellWidth = (float) (w - 6 - (player.greenMax - 1)) / player.greenMax;
-			for(int i = 0 ; i < player.greenScraps ; i++){
+			cellWidth = (float) (w - 6 - (player.yellowMax - 1)) / player.yellowMax;
+			for(int i = 0 ; i < player.yellowScraps ; i++){
 				g.fillRect((x+3) + (cellWidth * i) + i, y + 4, cellWidth, h - 6);
 			}
+		}
+		
+		// update scores and scraps
+		if(Player.scoreToAdd > 0){
+			int inc = 10;
+			Player.score += inc;
+			Player.scoreToAdd -= inc;
+		}
+		if(player.scrapsToAdd > 0){
+			int inc = 5;
+			player.scraps += inc;
+			player.scrapsToAdd -= 5;
 		}
 		
 		g.setColor(Color.white);
@@ -254,6 +272,7 @@ public class Play extends BasicGameState{
 		if(!player.lost)
 		{
 			
+			// PLAYER UPDATE
 			if(player.isAlive){
 				
 				if(player.invulnerable){
@@ -273,10 +292,22 @@ public class Play extends BasicGameState{
 				else if(input.isKeyPressed(Input.KEY_1))
 					player.bulletDelay -= 20;
 				
+				if(input.isKeyPressed(Input.KEY_3)){
+					player.speed++;
+					Starfield.speed += 3;
+				}
+				else if(input.isKeyPressed(Input.KEY_4)){
+					player.speed--;
+					Starfield.speed -= 3;
+				}
+				
+				// CONTROLS
+				
 				// MOVEMENT
 				// if moving
 				if(input.isKeyDown(Input.KEY_UP) || input.isKeyDown(Input.KEY_DOWN) ||
 				   input.isKeyDown(Input.KEY_LEFT) || input.isKeyDown(Input.KEY_RIGHT)){
+					
 					if(input.isKeyDown(Input.KEY_UP)){ player.move(0); }
 					else if(input.isKeyDown(Input.KEY_DOWN)){ player.move(1); }
 
@@ -298,12 +329,12 @@ public class Play extends BasicGameState{
 	
 				// Shoot
 				player.bulletCounter += delta;
-				if (input.isKeyDown(Input.KEY_SPACE)){
+				if (input.isKeyDown(Input.KEY_Q) || input.isKeyDown(Input.KEY_Z) || input.isKeyDown(Input.KEY_SPACE)){
 					player.fire();
 				}
 				
 				player.missileCounter += delta;
-				if(input.isKeyDown(Input.KEY_Q)){
+				if(input.isKeyDown(Input.KEY_W)){
 					player.fireMissile();
 				}
 			} // end of if(player alive)
@@ -403,9 +434,6 @@ public class Play extends BasicGameState{
 				player.hit(1);
 				enemyBullets.get(i).hit();
 			}
-			else if(bTemp.by > Game.GHEIGHT){
-				bTemp.visible = false;
-			}
 			
 			if(!bTemp.visible)
 				enemyBullets.remove(i);
@@ -420,7 +448,7 @@ public class Play extends BasicGameState{
 			if(player.xpos >= Game.GWIDTH-10 - player.sprite.getWidth()) player.xpos = Game.GWIDTH-10 - player.sprite.getWidth(); //right
 			if(player.xpos <= 10) player.xpos = 10; //left
 			if(player.ypos <= 10) player.ypos = 10; //up
-			if(player.ypos >= Game.GHEIGHT-30 - player.sprite.getHeight()) player.ypos = Game.GHEIGHT-30 - player.sprite.getHeight(); //down
+//			if(player.ypos + player.sprite.getHeight() >= bottomBorder) player.ypos = bottomBorder - player.sprite.getHeight(); //down
 			
 			// loop every enemy
 			for(int i = 0; i < enemies.size(); i++){
@@ -428,7 +456,7 @@ public class Play extends BasicGameState{
 				eBounds = eTemp.getBounds();
 				
 				if(eTemp.enemyID == 1 && enemyBullets.size() < 1)
-					eTemp.fire();
+//					eTemp.fire();
 				
 				// check if enemy hits player
 				if(p.intersects(eBounds) && !player.invulnerable && enemies.get(i).isAlive){
@@ -440,35 +468,26 @@ public class Play extends BasicGameState{
 					enemies.remove(i);
 			}
 			
-			// loop pickalbes
-			for (Iterator<Pickable> iterator = powerups.iterator(); iterator.hasNext(); ) {
-				  Pickable pick = iterator.next();
-				  if(pick.getBounds().intersects(p)){
-					  if(pick.id == 0) { //coin
-						  Coin c = (Coin) pick;
-						  c.picked = true;
-						  
-						  if(c.getRealBounds().intersects(p)){
-							  iterator.remove();
-							  player.pickCoin(c.value);
-							  scoreTexts.add(new ScoreText(c.xpos, c.ypos, c.value));
-						  }
-						  
-					  }// end coin
-					  else{
-						  player.pickPowerup(pick.id);
-						  iterator.remove();					  
+			// loop scraps
+			for (Iterator<Scrap> iterator = scraps.iterator(); iterator.hasNext(); ) {
+				  Scrap scrap = iterator.next();
+				  if(scrap.getBounds().intersects(p)){
+					  scrap.picked = true;
+					  
+					  if(scrap.getRealBounds().intersects(p)){
+						  iterator.remove();
+						  player.pickScrap(scrap);
+						  if(scrap.getClass() == Coin.class){
+							  Coin c = (Coin) scrap;
+							  scoreTexts.add(new ScoreText(scrap.xpos, scrap.ypos, c.value));
+						  }							  
 					  }
 				  }
-				  else if(pick.ypos - pick.getBounds().getHeight() > bottomBorder)
+				  else if(scrap.ypos + scrap.getRealBounds().getHeight() > Game.GHEIGHT)
 					  iterator.remove();
 			}
 		}
 		
-	}
-	
-	public static int centerX(String string, TrueTypeFont font){
-		return (Game.GWIDTH - font.getWidth(string))/2;
 	}
 	
 	public static int centerX(String string, AngelCodeFont font){

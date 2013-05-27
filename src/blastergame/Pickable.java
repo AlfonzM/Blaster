@@ -7,9 +7,10 @@ import org.newdawn.slick.geom.Rectangle;
 
 public class Pickable {
 	
-	/*
+	/* ID 
 	 * 0 = coin
-	 * 1 = shield
+	 * 1 = redScrap
+	 * 2 = greenScrap
 	 */
 	
 	int id;

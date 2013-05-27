@@ -6,7 +6,7 @@ import org.newdawn.slick.AppGameContainer;
 
 public class Game extends StateBasedGame{
 
-	public static final String gamename = "Blaster 2.0";
+	public static final String gamename = "Blaster";
 	public static final int GWIDTH = 800,
 							GHEIGHT = 600;
 	
@@ -15,7 +15,7 @@ public class Game extends StateBasedGame{
 	public static final int help = 2;
 	
 	public Game() throws SlickException{
-		super("Blaster 2.0");
+		super(gamename);
 		new Sounds();
 
 		this.addState(new Menu());
